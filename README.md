@@ -53,7 +53,7 @@ npm run dist:dir
 
 输出同样在 `release/` 下（`mac` 子目录里的 `.app`）。
 
-### 对方电脑上注意事项
+### 注意事项
 
 - 需要 **macOS**（与当前打包机架构一致：Apple Silicon 打出来是 arm64，Intel 打出来是 x64）。若要 **通用二进制（Universal）**，需在 `package.json` 的 `build.mac` 里增加 `"arch": ["x64", "arm64"]` 等配置，体积会变大。
 - 未做 **Apple Developer 公证** 时，首次打开可能提示「无法验证开发者」：可在 **系统设置 → 隐私与安全性** 里点「仍要打开」，或右键 `.app` → 打开。

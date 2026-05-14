@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+import { AnimatePresence, motion } from 'framer-motion'
 import { Loader2, SlidersHorizontal } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
@@ -24,6 +24,9 @@ const ISLAND_EXPAND_S = 0.52
 const ISLAND_COLLAPSE_S = 0.68
 
 const COLLAPSE_WINDOW_DELAY_MS = Math.round((ISLAND_COLLAPSE_S + 0.06) * 1000) + 100
+
+/** 收起态头条轮播间隔（多标的时；基金+股票并存时为交错顺序） */
+const HEADLINE_CAROUSEL_MS = 4200
 
 const FUND_ROW = 56
 const STOCK_ROW = 76
@@ -88,29 +91,69 @@ export function FundIsland() {
 
   const detailOpen = pointerInside || settingsOpen
 
-  const headline: Headline = useMemo(() => {
-    if (quotes.length > 0) {
-      const lead = quotes[0]
+  const [headlineCarouselIndex, setHeadlineCarouselIndex] = useState(0)
+
+  const headlineSlides = useMemo(() => {
+    const fundSlides: Headline[] = []
+    for (const lead of quotes) {
       const up = lead.changeAmount >= 0
-      return {
+      fundSlides.push({
         kind: 'fund',
         title: lead.name,
         subtitle: `${formatSignedNumber(lead.changeAmount, 4)} · ${formatPercent(lead.changePercent)}`,
         up,
-      }
+      })
     }
-    if (stockQuotes.length > 0) {
-      const s = stockQuotes[0]
+    const stockSlides: Headline[] = []
+    for (const s of stockQuotes) {
       const up = s.changeAmount >= 0
-      return {
+      stockSlides.push({
         kind: 'stock',
         title: s.name,
         subtitle: `${formatSignedNumber(s.changeAmount, 3)} · ${formatPercent(s.changePercent)}`,
         up,
-      }
+      })
     }
-    return { kind: 'empty' }
+
+    if (fundSlides.length === 0) return stockSlides
+    if (stockSlides.length === 0) return fundSlides
+
+    /** 同时有基金与股票时：按索引交错轮播，避免股票一直排在整段末尾 */
+    const merged: Headline[] = []
+    const n = Math.max(fundSlides.length, stockSlides.length)
+    for (let i = 0; i < n; i++) {
+      if (i < fundSlides.length) merged.push(fundSlides[i]!)
+      if (i < stockSlides.length) merged.push(stockSlides[i]!)
+    }
+    return merged
   }, [quotes, stockQuotes])
+
+  const slideDeckKey = useMemo(
+    () => `${watchlistFundCodes.join(',')}|${watchlistStockCodes.join(',')}`,
+    [watchlistFundCodes, watchlistStockCodes],
+  )
+
+  useEffect(() => {
+    setHeadlineCarouselIndex(0)
+  }, [slideDeckKey])
+
+  useEffect(() => {
+    if (headlineSlides.length === 0) return
+    setHeadlineCarouselIndex((i) => Math.min(i, headlineSlides.length - 1))
+  }, [headlineSlides.length])
+
+  useEffect(() => {
+    if (detailOpen || headlineSlides.length <= 1) return
+    const id = window.setInterval(() => {
+      setHeadlineCarouselIndex((i) => (i + 1) % headlineSlides.length)
+    }, HEADLINE_CAROUSEL_MS)
+    return () => window.clearInterval(id)
+  }, [detailOpen, headlineSlides.length])
+
+  const headline: Headline =
+    headlineSlides.length > 0
+      ? headlineSlides[headlineCarouselIndex]!
+      : { kind: 'empty' }
 
   const expandedHeight = useMemo(
     () => computeExpandedHeight(quotes.length, stockQuotes.length, settingsOpen),
@@ -242,16 +285,27 @@ export function FundIsland() {
                       <div className="truncate text-[11px] text-white/45">悬停查看列表</div>
                     </>
                   ) : (
-                    <>
-                      <div className="truncate text-[12px] font-semibold text-white/90 text-ellipsis overflow-hidden">{headline.title}</div>
-                      <div
-                        className={`truncate text-[11px] tabular-nums ${
-                          headline.up ? 'text-emerald-300' : 'text-rose-300'
-                        }`}
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={headlineCarouselIndex}
+                        initial={{ opacity: 0, y: 3 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -3 }}
+                        transition={{ duration: 0.26, ease: ISLAND_EASE }}
+                        className="min-w-0"
                       >
-                        {headline.subtitle}
-                      </div>
-                    </>
+                        <div className="truncate text-[12px] font-semibold text-white/90 text-ellipsis overflow-hidden">
+                          {headline.title}
+                        </div>
+                        <div
+                          className={`truncate text-[11px] tabular-nums ${
+                            headline.up ? 'text-emerald-300' : 'text-rose-300'
+                          }`}
+                        >
+                          {headline.subtitle}
+                        </div>
+                      </motion.div>
+                    </AnimatePresence>
                   )}
                 </div>
               </div>

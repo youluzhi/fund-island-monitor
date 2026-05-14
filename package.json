@@ -4,19 +4,22 @@
   "private": true,
   "type": "module",
   "main": "dist-electron/main.js",
-  "description": "macOS 顶部基金 / 股票灵动岛监控",
+  "description": "顶点基金 / 股票灵动岛监控",
   "author": "Fund Island",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "start": "electron .",
     "preview": "vite preview",
-    "dist": "npm run build && electron-builder",
+    "dist": "npm run build && electron-builder --mac --win",
+    "dist:mac": "npm run build && electron-builder --mac",
+    "dist:win": "npm run build && electron-builder --win",
     "dist:dir": "npm run build && electron-builder --dir"
   },
   "build": {
     "appId": "com.fundisland.monitor",
-    "productName": "基金灵动岛",
+    "productName": "Apex Island",
+    "icon": "src/static/img/fund-island-logo.png",
     "files": ["dist/**/*", "dist-electron/**/*", "package.json"],
     "asar": true,
     "directories": {
@@ -29,6 +32,14 @@
     },
     "dmg": {
       "artifactName": "${productName}-${version}-${arch}.dmg"
+    },
+    "win": {
+      "target": [{ "target": "nsis", "arch": ["x64"] }]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "${productName}-Setup-${version}-${arch}.exe"
     }
   },
   "dependencies": {

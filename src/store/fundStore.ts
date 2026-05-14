@@ -1,31 +1,31 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-import type { FundQuote } from '@/types/fund'
-import type { StockQuote } from '@/types/stock'
+import type { FundQuote } from "@/types/fund";
+import type { StockQuote } from "@/types/stock";
 
 export type FundStore = {
-  watchlistFundCodes: string[]
-  watchlistStockCodes: string[]
-  quotes: FundQuote[]
-  stockQuotes: StockQuote[]
-  isRefreshing: boolean
-  lastError: string | null
-  setWatchlistFundCodes: (codes: string[]) => void
-  setWatchlistStockCodes: (codes: string[]) => void
-  setQuotes: (quotes: FundQuote[]) => void
-  setStockQuotes: (quotes: StockQuote[]) => void
-  setRefreshing: (value: boolean) => void
-  setError: (message: string | null) => void
-}
+  watchlistFundCodes: string[];
+  watchlistStockCodes: string[];
+  quotes: FundQuote[];
+  stockQuotes: StockQuote[];
+  isRefreshing: boolean;
+  lastError: string | null;
+  setWatchlistFundCodes: (codes: string[]) => void;
+  setWatchlistStockCodes: (codes: string[]) => void;
+  setQuotes: (quotes: FundQuote[]) => void;
+  setStockQuotes: (quotes: StockQuote[]) => void;
+  setRefreshing: (value: boolean) => void;
+  setError: (message: string | null) => void;
+};
 
-const DEFAULT_FUND_CODES = ['110025', '026623', '025333', '025701']
+const DEFAULT_FUND_CODES: string[] = [];
 
 type PersistedV1 = {
-  watchlistCodes?: string[]
-  watchlistFundCodes?: string[]
-  watchlistStockCodes?: string[]
-}
+  watchlistCodes?: string[];
+  watchlistFundCodes?: string[];
+  watchlistStockCodes?: string[];
+};
 
 export const useFundStore = create<FundStore>()(
   persist(
@@ -38,11 +38,15 @@ export const useFundStore = create<FundStore>()(
       lastError: null,
       setWatchlistFundCodes: (codes) =>
         set(() => ({
-          watchlistFundCodes: Array.from(new Set(codes.map((c) => c.trim()).filter(Boolean))),
+          watchlistFundCodes: Array.from(
+            new Set(codes.map((c) => c.trim()).filter(Boolean)),
+          ),
         })),
       setWatchlistStockCodes: (codes) =>
         set(() => ({
-          watchlistStockCodes: Array.from(new Set(codes.map((c) => c.trim()).filter(Boolean))),
+          watchlistStockCodes: Array.from(
+            new Set(codes.map((c) => c.trim()).filter(Boolean)),
+          ),
         })),
       setQuotes: (quotes) => set(() => ({ quotes })),
       setStockQuotes: (stockQuotes) => set(() => ({ stockQuotes })),
@@ -50,19 +54,19 @@ export const useFundStore = create<FundStore>()(
       setError: (lastError) => set(() => ({ lastError })),
     }),
     {
-      name: 'fund-island-watchlist',
+      name: "fund-island-watchlist",
       version: 2,
       migrate: (persistedState, version) => {
         if (version < 2) {
-          const p = persistedState as PersistedV1
+          const p = persistedState as PersistedV1;
           if (Array.isArray(p.watchlistCodes) && !p.watchlistFundCodes) {
             return {
               watchlistFundCodes: [...p.watchlistCodes],
               watchlistStockCodes: [],
-            }
+            };
           }
         }
-        return persistedState as object
+        return persistedState as object;
       },
       partialize: (state) => ({
         watchlistFundCodes: state.watchlistFundCodes,
@@ -70,4 +74,4 @@ export const useFundStore = create<FundStore>()(
       }),
     },
   ),
-)
+);
