@@ -33,7 +33,7 @@ npm start
 
 `npm start` 等价于 `electron .`，会加载 `dist/` 与 `dist-electron/` 构建产物。
 
-## 打包给别人用（macOS）
+## 打包程序（macOS）
 
 1. 在本机安装依赖后执行：
 

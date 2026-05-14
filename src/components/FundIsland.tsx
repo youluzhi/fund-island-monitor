@@ -8,7 +8,7 @@ import { useIslandWindowBounds } from '@/hooks/useIslandWindowBounds'
 import { useFundStore } from '@/store/fundStore'
 import { formatPercent, formatSignedNumber } from '@/utils/formatNumber'
 
-const COLLAPSED_WIDTH = 240
+const COLLAPSED_WIDTH = 200
 const COLLAPSED_HEIGHT = 36
 const EXPANDED_WIDTH = 420
 
@@ -243,7 +243,7 @@ export function FundIsland() {
                     </>
                   ) : (
                     <>
-                      <div className="truncate text-[12px] font-semibold text-white/90">{headline.title}</div>
+                      <div className="truncate text-[12px] font-semibold text-white/90 text-ellipsis overflow-hidden">{headline.title}</div>
                       <div
                         className={`truncate text-[11px] tabular-nums ${
                           headline.up ? 'text-emerald-300' : 'text-rose-300'
